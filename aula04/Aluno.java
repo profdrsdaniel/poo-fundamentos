@@ -8,6 +8,12 @@ public class Aluno {
         this.nota = nota;
     }
 
+    // Construtor de copia: constroi um objeto novo no heap com o mesmo conteudo do original.
+    public Aluno(Aluno original) {
+        this.nome = original.nome;
+        this.nota = original.nota;
+    }
+
     public String getNome() {
         return nome;
     }

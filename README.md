@@ -12,6 +12,7 @@ Cada pasta na raiz é uma aula:
 ```
 poo-fundamentos/
 ├── aula01/     Primeiro contato com Java: tipos, condicional e saída formatada
+├── aula02/     Arrays, laços e métodos: estatísticas de uma turma
 ├── aula04/     Objetos na memória: referência, aliasing e construtor de cópia
 └── ...         (as próximas aulas aparecem aqui ao longo do semestre)
 ```
@@ -30,6 +31,7 @@ Cada pasta de aula tem seu próprio `README.md` explicando o que fazer, como rod
 | Aula | Branch | Assunto | Link |
 | --- | --- | --- | --- |
 | 01 | `task/boletim` | Média, condicional encadeada e saída formatada | [ver branch](https://github.com/profdrsdaniel/poo-fundamentos/tree/task/boletim) |
+| 02 | `task/estatisticas` | Arrays, laços e decomposição em métodos | [ver branch](https://github.com/profdrsdaniel/poo-fundamentos/tree/task/estatisticas) |
 | 04 | `task/objetos-na-memoria` | Aliasing, construtor de cópia e passagem de parâmetros | [ver branch](https://github.com/profdrsdaniel/poo-fundamentos/tree/task/objetos-na-memoria) |
 
 > Uma resolução só faz sentido depois que você tentou. Consultar antes de tentar transforma um exercício

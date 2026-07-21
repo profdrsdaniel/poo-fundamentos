@@ -1,3 +1,5 @@
+import java.util.Locale;
+
 public class Boletim {
 
     public static void main(String[] args) {
@@ -7,21 +9,20 @@ public class Boletim {
         double nota2 = 5.5;
         double nota3 = 4.0;
 
-        // TODO 1: calcule a media das tres notas.
-        //         Cuidado: dividir por 3 (int) trunca. Divida por 3.0.
+        double media = (nota1 + nota2 + nota3) / 3.0;
 
-        // TODO 2: decida a situacao com if / else if / else:
-        //         media >= 6.0          -> "Aprovado"
-        //         media entre 4.0 e 6.0 -> "Recuperacao"
-        //         media < 4.0           -> "Reprovado"
+        String situacao;
+        if (media >= 6.0) {
+            situacao = "Aprovado";
+        } else if (media >= 4.0) {
+            situacao = "Recuperacao";
+        } else {
+            situacao = "Reprovado";
+        }
 
-        // TODO 3: imprima, com a media em duas casas decimais (use printf com %.2f).
-        //         Passe Locale.US como primeiro argumento do printf, senao em maquina
-        //         configurada em portugues o separador decimal sai virgula (5,83).
-        //         Isso exige um import java.util.Locale; no topo do arquivo.
-        //         === BOLETIM ===
-        //         Aluno: Ana Souza
-        //         Media: 5.83
-        //         Situacao: Recuperacao
+        System.out.println("=== BOLETIM ===");
+        System.out.println("Aluno: " + aluno);
+        System.out.printf(Locale.US, "Media: %.2f%n", media);
+        System.out.println("Situacao: " + situacao);
     }
 }

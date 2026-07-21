@@ -1,23 +1,54 @@
+import java.util.Locale;
+
 public class Turma {
 
     public static void main(String[] args) {
 
         double[] notas = {8.0, 5.5, 4.0, 9.5, 6.0, 3.0, 7.5, 10.0, 2.5, 6.0};
 
-        // TODO: chame os quatro metodos e imprima no formato:
-        //   === ESTATISTICAS DA TURMA ===
-        //   Alunos:     10
-        //   Media:      6.20
-        //   Maior nota: 10.0
-        //   Menor nota: 2.5
-        //   Aprovados:  6 de 10
-        // Use notas.length para a quantidade, nunca o numero 10 cravado.
-        // Como na aula 01, passe Locale.US no printf para o separador decimal
-        // sair ponto e nao virgula. Exige import java.util.Locale; no topo.
+        System.out.println("=== ESTATISTICAS DA TURMA ===");
+        System.out.printf(Locale.US, "Alunos:     %d%n", notas.length);
+        System.out.printf(Locale.US, "Media:      %.2f%n", media(notas));
+        System.out.printf(Locale.US, "Maior nota: %.1f%n", maior(notas));
+        System.out.printf(Locale.US, "Menor nota: %.1f%n", menor(notas));
+        System.out.printf(Locale.US, "Aprovados:  %d de %d%n", aprovados(notas, 6.0), notas.length);
     }
 
-    // TODO: media(double[] valores) -> soma tudo e divide por valores.length
-    // TODO: maior(double[] valores) -> comeca em valores[0] e percorre trocando
-    // TODO: menor(double[] valores) -> igual ao maior, invertendo a comparacao
-    // TODO: aprovados(double[] valores, double corte) -> conta quantos v >= corte
+    static double media(double[] valores) {
+        double soma = 0.0;
+        for (double v : valores) {
+            soma += v;
+        }
+        return soma / valores.length;
+    }
+
+    static double maior(double[] valores) {
+        double max = valores[0];
+        for (int i = 1; i < valores.length; i++) {
+            if (valores[i] > max) {
+                max = valores[i];
+            }
+        }
+        return max;
+    }
+
+    static double menor(double[] valores) {
+        double min = valores[0];
+        for (int i = 1; i < valores.length; i++) {
+            if (valores[i] < min) {
+                min = valores[i];
+            }
+        }
+        return min;
+    }
+
+    static int aprovados(double[] valores, double corte) {
+        int total = 0;
+        for (double v : valores) {
+            if (v >= corte) {
+                total++;
+            }
+        }
+        return total;
+    }
 }

@@ -1,28 +1,133 @@
-# Aula 02 — Arrays, laços e métodos
+# Aula 02 — Estatísticas da turma (resolução comentada)
 
-Segunda aula de nivelamento. Na Aula 01 você trabalhou com três notas em três variáveis separadas.
-Isso não escala: uma turma tem dez, quarenta, duzentos alunos, e ninguém declara `nota1` até `nota200`.
-Aqui entram o **array**, que guarda muitos valores sob um nome só, o **laço**, que percorre esses
-valores, e o **método**, que dá nome a um cálculo para você poder repeti-lo sem repetir o código.
+> Esta é a branch `task/estatisticas`. Se você ainda não tentou resolver sozinho, volte para a `main`
+> (`git switch main`) e tente primeiro — o texto abaixo entrega a resposta inteira.
 
-## A tarefa
+Para rodar, a partir da raiz do repositório:
 
-Abra `Turma.java`. O array já vem preenchido:
-
-```java
-double[] notas = {8.0, 5.5, 4.0, 9.5, 6.0, 3.0, 7.5, 10.0, 2.5, 6.0};
+```bash
+cd aula02
+javac -d out Turma.java
+java -cp out Turma
 ```
 
-Você deve escrever **quatro métodos**, cada um com uma responsabilidade só:
+---
 
-| Método | O que faz |
-| --- | --- |
-| `media(double[] valores)` | Soma todos os valores e divide pela quantidade. |
-| `maior(double[] valores)` | Devolve o maior valor do array. |
-| `menor(double[] valores)` | Devolve o menor valor do array. |
-| `aprovados(double[] valores, double corte)` | Conta quantos valores são maiores ou iguais ao corte. |
+## Por que `media` usa for-each e `maior`/`menor` usam for com índice
 
-E, no `main`, chamar os quatro e imprimir exatamente neste formato:
+Os quatro métodos percorrem o mesmo array, mas não da mesma maneira. Isso não é inconsistência de
+estilo: cada laço foi escolhido pelo que o cálculo precisa saber.
+
+Somar precisa apenas dos **valores**. Não importa se o `8.0` estava na posição 0 ou na 7 — a soma dá o
+mesmo resultado em qualquer ordem, e o índice nunca é usado. Quando o índice não faz falta, o for-each
+diz exatamente isso:
+
+```java
+for (double v : valores) {
+    soma += v;
+}
+```
+
+Lê-se "para cada valor `v` em `valores`". Não há contador para inicializar errado, não há condição de
+parada para escrever `<=` no lugar de `<`, e é impossível estourar o array. A classe inteira de bugs de
+índice simplesmente não existe nesse laço, porque não há índice.
+
+Já `maior` precisa de algo que o for-each não oferece: **começar do segundo elemento**.
+
+```java
+double max = valores[0];
+for (int i = 1; i < valores.length; i++) {
+    if (valores[i] > max) {
+        max = valores[i];
+    }
+}
+```
+
+A ideia é "assuma que o primeiro é o maior, e compare com todos os outros". Como `valores[0]` já foi
+usado como palpite inicial, compará-lo consigo mesmo seria trabalho jogado fora — daí o `i = 1`. O
+for-each sempre começa do primeiro e não tem como pular; para expressar "do segundo em diante" é preciso
+o for com índice.
+
+Vale dizer que um for-each aqui **também funcionaria** — comparar `valores[0]` com ele mesmo é inútil,
+não é errado. A versão com índice foi escolhida porque torna a intenção visível: o `i = 1` é a única
+pista, no código, de que o primeiro elemento tem um papel diferente dos demais. E porque você precisa
+saber escrever as duas formas: for-each quando só interessa o valor, for com índice quando interessa a
+**posição** — para começar do meio, andar de dois em dois, ir de trás para frente ou comparar `valores[i]`
+com `valores[i - 1]`.
+
+A regra prática: **use for-each por padrão, e for com índice quando o índice for realmente necessário.**
+O laço mais simples que resolve é o que menos erra.
+
+## Por que `maior`/`menor` iniciam com `valores[0]` e não com `0`
+
+Inicializar com zero é a tentação natural, e funciona — com estes dados:
+
+```java
+double max = 0.0;                 // parece inofensivo
+for (double v : valores) {
+    if (v > max) max = v;
+}
+```
+
+Com notas, nunca dá problema: nota não é negativa, então algum valor sempre supera o zero e `max`
+acaba correto. O bug fica dormindo até o método ser reaproveitado — e ele *vai* ser, porque o
+parâmetro se chama `valores`, não `notas`, e nada nele diz "só sirvo para notas".
+
+No dia em que alguém passar temperaturas de inverno, saldos bancários ou variações percentuais:
+
+```java
+double[] temperaturas = {-3.0, -7.5, -1.2};
+```
+
+O maior valor real é `-1.2`. Mas nenhum deles é maior que `0.0`, então o `if` nunca dispara, `max`
+continua `0.0`, e o método devolve **um número que não está no array**. Pior: não há exceção, não há
+aviso, não há nada. Só uma resposta errada com cara de certa.
+
+Inicializar com `valores[0]` remove a suposição. O palpite inicial passa a ser um elemento que
+comprovadamente existe no array, e o resultado é necessariamente um dos valores recebidos — quaisquer que
+sejam eles, negativos ou não. O método deixa de depender do domínio dos dados.
+
+Um cuidado que fica em aberto: `valores[0]` estoura com `ArrayIndexOutOfBoundsException` se o array
+vier **vazio**. Isso é discutível melhora — a versão com zero devolveria `0.0` silenciosamente para um
+array vazio, o que é pior, porque esconde o problema. Ainda assim, código de produção trataria o caso
+explicitamente, lançando uma exceção com mensagem clara ou devolvendo um `OptionalDouble`. Fica para
+quando o assunto for tratamento de erros. (O mesmo vale para `media`, que devolve `NaN` ao dividir
+`0.0` por `0` num array vazio.)
+
+## Por que `aprovados` recebe o corte como parâmetro
+
+Compare as duas assinaturas possíveis:
+
+```java
+static int aprovados(double[] valores)               // corte 6.0 cravado dentro
+static int aprovados(double[] valores, double corte) // corte vem de fora
+```
+
+A primeira responde a uma pergunta só: "quantos tiraram 6.0 ou mais?". A segunda responde a uma família
+inteira de perguntas, e a mesma linha de código serve para todas:
+
+```java
+aprovados(notas, 6.0)   // quantos passaram
+aprovados(notas, 7.0)   // e se a media de corte subisse?
+aprovados(notas, 9.0)   // quantos tiraram nota de excelencia
+```
+
+O padrão por trás disso: **o que varia entre um uso e outro vira parâmetro; o que é sempre igual fica
+dentro do método.** O algoritmo — percorrer, comparar, contar — é sempre o mesmo, e por isso mora no
+corpo. O limiar muda conforme a pergunta, o curso, o semestre, a decisão do colegiado. Cravá-lo lá
+dentro obrigaria a editar o método, ou a duplicá-lo com outro nome, toda vez que a pergunta mudasse.
+
+Repare que essa é a mesma ideia por trás de `valores.length`, discutida no projeto base, e por trás de
+`double[] valores` em vez de mexer direto na variável `notas`: o método não decide nada que quem chama
+deveria decidir. Ele recebe os dados e o critério, e devolve a resposta. É isso que o torna
+reaproveitável — e é o embrião da ideia de **responsabilidade** que a disciplina vai perseguir quando
+começarem as classes de verdade.
+
+---
+
+## Saída real da execução
+
+Colada do terminal, sem edição:
 
 ```
 === ESTATISTICAS DA TURMA ===
@@ -33,64 +138,8 @@ Menor nota: 2.5
 Aprovados:  6 de 10
 ```
 
-Use corte `6.0` para os aprovados.
-
-## O que você entrega
-
-`Turma.java` compilando, com os quatro métodos implementados e produzindo a saída acima. Um arquivo só.
-
-## Use `notas.length`, nunca `10` cravado
-
-O array tem dez notas hoje. Escrever `10` direto no código funciona hoje e passa a mentir no minuto em
-que alguém acrescentar um aluno — e não há erro de compilação para avisar: o programa continua rodando
-e apenas responde errado, dividindo por dez o que deveria ser dividido por onze.
-
-Em Java o array sabe o próprio tamanho, e você pergunta com `notas.length` (sem parênteses — é um campo,
-não um método; em `String` é `length()`, com parênteses, e a inconsistência é uma pegadinha clássica da
-linguagem). Prefira sempre perguntar ao array:
-
-```java
-for (int i = 0; i < valores.length; i++) { ... }   // adapta-se sozinho
-for (int i = 0; i < 10; i++) { ... }               // quebra em silencio
-```
-
-Isso vale dentro dos métodos também: eles recebem `double[] valores` sem saber de onde veio nem quantos
-são, e é justamente por perguntarem `valores.length` que servem para qualquer array — inclusive o da
-próxima turma, com trinta alunos.
-
-## O detalhe do separador decimal
-
-Como na Aula 01: `printf` formata números segundo o locale do sistema, e em português o separador
-decimal é a vírgula (`6,20`). Para a saída bater com o enunciado em qualquer máquina, passe `Locale.US`
-como primeiro argumento:
-
-```java
-import java.util.Locale;   // no topo do arquivo
-
-System.out.printf(Locale.US, "Media:      %.2f%n", media(notas));
-```
-
-## Como rodar
-
-### Pelo IntelliJ IDEA
-
-1. `File → Open...` e selecione a pasta raiz do repositório (`poo-fundamentos`).
-2. Na primeira vez, configure o SDK em `File → Project Structure → Project → SDK` com um
-   **JDK 21 ou superior**.
-3. Clique com o botão direito na pasta `aula02` e escolha `Mark Directory as → Sources Root`.
-4. Abra `Turma.java` e clique no ▶ verde ao lado do `main`.
-
-### Pelo terminal
-
-A partir da raiz do repositório:
-
-```bash
-cd aula02
-javac -d out Turma.java
-java -cp out Turma
-```
-
-> Rodando o arquivo como ele veio, ele **compila e não imprime nada** — o `main` só declara o array e o
-> resto são comentários. É o ponto de partida, não um erro.
-
-A resolução comentada fica na branch `task/estatisticas`. Tente antes de olhar.
+Confira à mão: as dez notas somam `62.0`, e `62.0 / 10` dá `6.2` — exibido como `6.20` por causa do
+`%.2f`. As notas maiores ou iguais a `6.0` são `8.0`, `9.5`, `6.0`, `7.5`, `10.0` e `6.0`: seis
+aprovados. E note que os dois `6.0` entraram na conta — o critério é `>=`, não `>`. Trocar um pelo
+outro derrubaria dois alunos que passaram raspando, e é o tipo de erro que a saída não denuncia
+sozinha; só conferindo é que aparece.
